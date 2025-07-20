@@ -2,7 +2,7 @@ package ru.vichukano.spicerate.gui
 
 import javafx.scene.control.TextField
 
-class AmountTextField : TextField() {
+class DoubleValueTextField : TextField() {
 
     init {
         textProperty().addListener { _, oldValue, newValue ->
@@ -14,12 +14,6 @@ class AmountTextField : TextField() {
             if (!hasFocus) {
                 val amount = getAmount()
                 text = "%.2f".format(amount)
-            }
-        }
-        setOnKeyReleased {
-            if (!text.contains(COMMA_REGEX) && text.matches(DIGITS_REGEX)) {
-                appendText(".00")
-                positionCaret(text.length - 3)
             }
         }
     }
@@ -34,7 +28,5 @@ class AmountTextField : TextField() {
 
     private companion object {
         private val AMOUNT_REGEX = Regex("^[\\d\\s]*([.,]\\d{0,2})?$")
-        private val DIGITS_REGEX = Regex("[0-9]+")
-        private val COMMA_REGEX = Regex("[.,]")
     }
 }
