@@ -7,27 +7,24 @@ import javafx.scene.layout.*
 import javafx.scene.text.Text
 import org.slf4j.LoggerFactory
 import ru.vichukano.spicerate.core.calculations.CalculateProfit
-import ru.vichukano.spicerate.core.model.Amount
-import ru.vichukano.spicerate.core.model.Capitalization
-import ru.vichukano.spicerate.core.model.Deposit
-import ru.vichukano.spicerate.core.model.DepositDetails
-import ru.vichukano.spicerate.core.model.Rate
+import ru.vichukano.spicerate.core.model.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class MainView(
     private val calculateProfit: CalculateProfit
 ) : AnchorPane() {
+    private val log = LoggerFactory.getLogger(javaClass)
     private val inputSum = DoubleValueTextField()
     private val inputRate = DoubleValueTextField()
     private val inputOpenDate = DatePicker()
     private val inputPeriodMonths = IntegerValueTextField()
     private val inputCapitalization = ComboBox<String>()
     private val calculateButton = Button("Рассчитать")
-    private val outputInitialSum = Text()
-    private val outputSum = Text()
-    private val outputDelta = Text()
-    private val outputEar = Text()
+    private val outputInitialSum = TextField()
+    private val outputSum = TextField()
+    private val outputDelta = TextField()
+    private val outputEar = TextField()
     private val outputStatisticsPane = TableView<TableItem>()
 
     init {
@@ -91,8 +88,6 @@ class MainView(
 
     private fun createOutputGrid(): GridPane {
         return GridPane().apply {
-            layoutX = 6.0
-            layoutY = 68.0
             prefHeight = 294.0
             prefWidth = 395.0
             columnConstraints.addAll(
@@ -109,12 +104,12 @@ class MainView(
                 add(text, 0, rowIndex)
                 add(node, 1, rowIndex)
                 GridPane.setMargin(text, Insets(0.0, 0.0, 0.0, 20.0))
-                GridPane.setMargin(node, Insets(0.0, 0.0, 0.0, 20.0))
+                GridPane.setMargin(node, Insets(0.0, 10.0, 0.0, 20.0))
             }
-            addRow(0, "Сумма в начале срока", outputInitialSum)
-            addRow(1, "Сумма в конце срока", outputSum)
-            addRow(2, "Доход", outputDelta)
-            addRow(3, "Эффективная ставка", outputEar)
+            addRow(0, "Сумма в начале срока", outputInitialSum.apply { isEditable = false })
+            addRow(1, "Сумма в конце срока", outputSum.apply { isEditable = false })
+            addRow(2, "Доход", outputDelta.apply { isEditable = false })
+            addRow(3, "Эффективная ставка", outputEar.apply { isEditable = false })
         }
     }
 
@@ -139,7 +134,7 @@ class MainView(
     }
 
     private fun buildDepositFromInputs(): Deposit {
-        val amountRaw = BigDecimal(inputSum.text.replace(',', '.'))
+        val amountRaw = BigDecimal(inputSum.text.replace("_", "").replace(',', '.'))
             .multiply(BigDecimal(100))
             .setScale(2)
             .toBigInteger()
@@ -153,9 +148,9 @@ class MainView(
     }
 
     private fun updateOutputs(depositInfo: DepositDetails) {
-        outputInitialSum.text = depositInfo.startSum.toString()
-        outputSum.text = depositInfo.endSum.toString()
-        outputDelta.text = depositInfo.delta.toString()
+        outputInitialSum.text = depositInfo.startSum.toFormattedString()
+        outputSum.text = depositInfo.endSum.toFormattedString()
+        outputDelta.text = depositInfo.delta.toFormattedString()
         outputEar.text = depositInfo.effectiveRate.toString()
         populateStatisticsPane(depositInfo.statistics)
     }
@@ -168,7 +163,7 @@ class MainView(
                 TableItem(
                     number = "$index",
                     date = date.toString(),
-                    amount = amount.toString(),
+                    amount = amount.toFormattedString(),
                 )
             )
             index++
@@ -191,9 +186,5 @@ class MainView(
             cellValueFactory = PropertyValueFactory(propertyName)
             isSortable = false
         }
-    }
-
-    private companion object {
-        private val log = LoggerFactory.getLogger(MainView::class.java)
     }
 }

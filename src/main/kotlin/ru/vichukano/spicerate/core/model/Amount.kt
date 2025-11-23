@@ -51,6 +51,15 @@ class Amount private constructor(
 
     override fun toString(): String = "$intPart,$decimalPart"
 
+    fun toFormattedString(): String {
+        val integerPartString = intPart.toString()
+        val formattedIntegerPart = integerPartString.reversed()
+            .chunked(3)
+            .joinToString("_")
+            .reversed()
+        return "$formattedIntegerPart,$decimalPart"
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

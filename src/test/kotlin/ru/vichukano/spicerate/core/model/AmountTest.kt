@@ -20,6 +20,16 @@ class AmountTest {
     }
 
     @Test
+    fun `should return formatted string with thousands separator`() {
+        Assertions.assertEquals("1_000,00", Amount.create(1000, 0).toFormattedString())
+        Assertions.assertEquals("1_000_000,00", Amount.create(1000000, 0).toFormattedString())
+        Assertions.assertEquals("123,45", Amount.create(123, 45).toFormattedString())
+        Assertions.assertEquals("1_234_567,89", Amount.create(1234567, 89).toFormattedString())
+        Assertions.assertEquals("100_500,23", Amount.create(100500, 23).toFormattedString())
+        Assertions.assertEquals("0,00", Amount.create(0, 0).toFormattedString())
+    }
+
+    @Test
     fun `should throw exception if wrong values`() {
         assertThrows<IllegalArgumentException> { Amount.create(-100, 20) }
         assertThrows<IllegalArgumentException> { Amount.create(100, -20) }
