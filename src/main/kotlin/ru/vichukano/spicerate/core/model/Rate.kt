@@ -17,6 +17,14 @@ class Rate private constructor(private val value: BigDecimal) {
                 .setScale(4, RoundingMode.HALF_UP)
             return Rate(formattedValue)
         }
+
+        fun create(decimalValue: BigDecimal): Rate {
+            if (decimalValue.toLong() < 0) {
+                throw IllegalArgumentException("Rate should be positive value! Current value: $decimalValue")
+            }
+            val formattedValue = decimalValue.setScale(4, RoundingMode.HALF_UP)
+            return Rate(formattedValue)
+        }
     }
 
     fun decimalValue() = value
@@ -26,5 +34,17 @@ class Rate private constructor(private val value: BigDecimal) {
             .setScale(2, RoundingMode.HALF_UP)
         return "$formatted%".replace('.', ',')
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as Rate
+        return value == other.value
+    }
+
+    override fun hashCode(): Int {
+        return value.hashCode()
+    }
+
 
 }

@@ -8,6 +8,8 @@ class Amount private constructor(
     private val decimalPart: String,
 ) {
 
+    operator fun plus(other: Amount) = create(this.minimalUnits + other.minimalUnits)
+
     companion object {
         private val HUNDRED = BigInteger("100")
 
@@ -30,6 +32,19 @@ class Amount private constructor(
             val intPart = minimalUnits.divide(HUNDRED).toLong()
             val decimalPart = minimalUnits.remainder(HUNDRED).toInt()
             return Amount(minimalUnits, intPart, formatDecimalPart(decimalPart))
+        }
+
+        fun create(minimalUnits: Long): Amount {
+            if (minimalUnits < 0L) {
+                throw IllegalArgumentException("Amount must be greater than zero!")
+            }
+            return create(BigInteger.valueOf(minimalUnits))
+        }
+
+        fun create(stringValue: String): Amount = try {
+            create(BigInteger(stringValue))
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Can't create Amount from string value: $stringValue}", e)
         }
 
         private fun formatDecimalPart(decimalPart: Int): String = when (decimalPart) {

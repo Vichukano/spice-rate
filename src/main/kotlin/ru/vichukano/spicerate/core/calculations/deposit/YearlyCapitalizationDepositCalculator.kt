@@ -1,26 +1,27 @@
-package ru.vichukano.spicerate.core.calculations
+package ru.vichukano.spicerate.core.calculations.deposit
 
 import ru.vichukano.spicerate.core.ext.isBeforeOrEqual
 import ru.vichukano.spicerate.core.model.Amount
-import ru.vichukano.spicerate.core.model.Deposit
 import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.core.model.DepositRequest
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.util.*
 
-class YearlyCapitalizationDepositCalculator : DepositCalculator {
+internal object YearlyCapitalizationDepositCalculator : DepositCalculator {
 
-    override fun calculateProfit(deposit: Deposit): DepositDetails {
-        val startDate = deposit.openDate
-        val endDate = startDate.plusMonths(deposit.periodMonths.toLong())
-        val startSum = deposit.sum.minimalUnits()
+    override fun calculateProfit(depositRequest: DepositRequest): DepositDetails {
+        val startDate = depositRequest.openDate
+        val endDate = startDate.plusMonths(depositRequest.termInMonths.toLong())
+        val startSum = depositRequest.sum.minimalUnits()
         val yearsToDelta = HashMap<LocalDate, BigDecimal>()
         val buffer = ArrayList<BigDecimal>()
         var currDate = startDate.plusDays(1)
         var checkPointDate = currDate.plusYears(1)
-        val rateValue = deposit.rate.decimalValue()
+        val rateValue = depositRequest.rate.decimalValue()
         var total = startSum.toBigDecimal()
+        val dailyStatistic = mutableMapOf<LocalDate, Amount>()
         while (currDate.isBeforeOrEqual(endDate)) {
             val daysInYear = if (currDate.isLeapYear) LEAP_YEAR_DAYS else NON_LEAP_YEAR_DAYS
             if (currDate == checkPointDate) {
@@ -34,6 +35,7 @@ class YearlyCapitalizationDepositCalculator : DepositCalculator {
                 .divide(daysInYear, 10, RoundingMode.HALF_UP)
             buffer.add(delta)
             currDate = currDate.plusDays(1)
+            dailyStatistic[currDate] = Amount.create(delta.setScale(2, RoundingMode.HALF_UP).toBigInteger())
         }
         val lastDelta = buffer.fold(BigDecimal.ZERO) { acc, delta -> acc.add(delta) }
         yearsToDelta[checkPointDate.minusDays(1)] = lastDelta
@@ -47,24 +49,21 @@ class YearlyCapitalizationDepositCalculator : DepositCalculator {
                 )
             }
             .toSortedMap()
-        val ear = EarCalculator.ear(deposit.rate, deposit.capitalization, deposit.periodMonths)
+        val ear = EarCalculator.ear(depositRequest.rate, depositRequest.capitalization, depositRequest.termInMonths)
         return DepositDetails(
-            depositId = deposit.id,
             startSum = Amount.create(startSum),
             endSum = Amount.create(endSum),
-            delta = Amount.create(delta),
+            profit = Amount.create(delta),
             startDate = startDate,
             endDate = endDate,
-            baseRate = deposit.rate,
+            baseRate = depositRequest.rate,
             effectiveRate = ear,
-            capitalization = deposit.capitalization,
-            statistics = statistics
+            capitalization = depositRequest.capitalization,
+            statistics = statistics,
+            dailyStatistics = dailyStatistic,
+            termInMonths = depositRequest.termInMonths,
         )
     }
 
-    private companion object {
-        private val LEAP_YEAR_DAYS = BigDecimal("366.0")
-        private val NON_LEAP_YEAR_DAYS = BigDecimal("365.0")
-    }
 
 }

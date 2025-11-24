@@ -1,35 +1,38 @@
 package ru.vichukano.spicerate.gui
 
 import javafx.geometry.Insets
+import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.*
 import javafx.scene.text.Text
-import org.slf4j.LoggerFactory
-import ru.vichukano.spicerate.core.calculations.CalculateProfit
-import ru.vichukano.spicerate.core.model.*
-import java.math.BigDecimal
+import ru.vichukano.spicerate.core.model.Amount
+import ru.vichukano.spicerate.core.model.Capitalization
+import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.gui.controller.DepositCalculationsController
 import java.time.LocalDate
 
 class MainView(
-    private val calculateProfit: CalculateProfit
+    private val calculationsController: DepositCalculationsController
 ) : AnchorPane() {
-    private val log = LoggerFactory.getLogger(javaClass)
     private val inputSum = DoubleValueTextField()
     private val inputRate = DoubleValueTextField()
     private val inputOpenDate = DatePicker()
     private val inputPeriodMonths = IntegerValueTextField()
     private val inputCapitalization = ComboBox<String>()
     private val calculateButton = Button("Рассчитать")
+    private val saveButton = Button("Сохранить")
+    private val historyButton = Button("История")
     private val outputInitialSum = TextField()
     private val outputSum = TextField()
     private val outputDelta = TextField()
     private val outputEar = TextField()
     private val outputStatisticsPane = TableView<TableItem>()
+    private var historyView: HistoryView? = null
 
     init {
-        prefHeight = 600.0
-        prefWidth = 800.0
+        prefHeight = 800.0
+        prefWidth = 1200.0
         children.add(createMainLayout())
         initControls()
         initActions()
@@ -67,7 +70,7 @@ class MainView(
                     minHeight = 10.0; prefHeight = 30.0; vgrow = Priority.SOMETIMES
                 })
             }
-            fun addRow(rowIndex: Int, labelText: String, control: javafx.scene.Node) {
+            fun addRow(rowIndex: Int, labelText: String, control: Node) {
                 val text = Text(labelText)
                 add(text, 0, rowIndex)
                 add(control, 1, rowIndex)
@@ -94,12 +97,12 @@ class MainView(
                 ColumnConstraints().apply { hgrow = Priority.SOMETIMES; minWidth = 10.0; prefWidth = 100.0 },
                 ColumnConstraints().apply { hgrow = Priority.SOMETIMES; minWidth = 10.0; prefWidth = 100.0 }
             )
-            repeat(4) {
+            repeat(5) {
                 rowConstraints.add(RowConstraints().apply {
                     minHeight = 10.0; prefHeight = 30.0; vgrow = Priority.SOMETIMES
                 })
             }
-            fun addRow(rowIndex: Int, labelText: String, node: javafx.scene.Node) {
+            fun addRow(rowIndex: Int, labelText: String, node: Node) {
                 val text = Text(labelText)
                 add(text, 0, rowIndex)
                 add(node, 1, rowIndex)
@@ -110,6 +113,16 @@ class MainView(
             addRow(1, "Сумма в конце срока", outputSum.apply { isEditable = false })
             addRow(2, "Доход", outputDelta.apply { isEditable = false })
             addRow(3, "Эффективная ставка", outputEar.apply { isEditable = false })
+            val buttons = HBox().apply {
+                spacing = 10.0
+                children.addAll(saveButton, historyButton)
+            }
+            add(buttons, 0, 4)
+            GridPane.setMargin(buttons, Insets(0.0, 20.0, 0.0, 20.0))
+            saveButton.prefHeight = 30.0
+            saveButton.prefWidth = 185.0
+            historyButton.prefHeight = 30.0
+            historyButton.prefWidth = 185.0
         }
     }
 
@@ -124,33 +137,50 @@ class MainView(
 
     private fun initActions() {
         calculateButton.setOnAction { onCalculateButtonPressed() }
+        saveButton.setOnAction { onSaveButtonPressed() }
+        historyButton.setOnAction { onHistoryButtonPressed() }
+    }
+
+    private fun onHistoryButtonPressed() {
+        if (historyView?.isShowing == true) {
+            historyView?.requestFocus()
+        } else {
+            val calculations = calculationsController.getAllCalculations()
+            historyView = HistoryView(
+                controller = calculationsController,
+                calculations = calculations,
+                onClose = { historyView = null },
+                onDelete = { item ->
+                    calculationsController.delete(item.id)
+                    historyView?.update(calculationsController.getAllCalculations())
+                }
+            )
+            historyView?.show()
+        }
+    }
+
+    private fun onSaveButtonPressed() {
+        calculationsController.saveLastCalculation()
+        if (historyView?.isShowing == true) {
+            historyView?.update(calculationsController.getAllCalculations())
+        }
     }
 
     private fun onCalculateButtonPressed() {
-        val deposit = buildDepositFromInputs()
-        log.info("Calculating for deposit: {}", deposit)
-        val depositInfo = calculateProfit(deposit)
-        updateOutputs(depositInfo)
-    }
-
-    private fun buildDepositFromInputs(): Deposit {
-        val amountRaw = BigDecimal(inputSum.text.replace("_", "").replace(',', '.'))
-            .multiply(BigDecimal(100))
-            .setScale(2)
-            .toBigInteger()
-        return Deposit(
-            sum = Amount.create(amountRaw),
-            rate = Rate.create(inputRate.text),
+        val depositInfo = calculationsController.calculateDeposit(
+            inputSum = inputSum.text,
+            inputRate = inputRate.text,
             periodMonths = inputPeriodMonths.text.toInt(),
-            capitalization = Capitalization.fromValue(inputCapitalization.value.toString()),
-            openDate = inputOpenDate.value
+            capitalizationValue = inputCapitalization.value,
+            openDate = inputOpenDate.value,
         )
+        updateOutputs(depositInfo)
     }
 
     private fun updateOutputs(depositInfo: DepositDetails) {
         outputInitialSum.text = depositInfo.startSum.toFormattedString()
         outputSum.text = depositInfo.endSum.toFormattedString()
-        outputDelta.text = depositInfo.delta.toFormattedString()
+        outputDelta.text = depositInfo.profit.toFormattedString()
         outputEar.text = depositInfo.effectiveRate.toString()
         populateStatisticsPane(depositInfo.statistics)
     }

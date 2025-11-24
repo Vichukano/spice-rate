@@ -2,14 +2,12 @@ package ru.vichukano.spicerate.core.model
 
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
 
-data class Deposit(
+data class DepositRequest(
     val sum: Amount,
     val openDate: LocalDate,
-    val periodMonths: Int,
+    val termInMonths: Int,
     val rate: Rate,
     val capitalization: Capitalization,
-    val id: UUID = UUID.randomUUID(),
     val createdAt: Instant = Instant.now(),
 )

@@ -1,4 +1,4 @@
-package ru.vichukano.spicerate.core.calculations
+package ru.vichukano.spicerate.core.calculations.deposit
 
 import ch.obermuhlner.math.big.BigDecimalMath
 import ru.vichukano.spicerate.core.model.Capitalization

@@ -25,7 +25,13 @@ dependencies {
     implementation("ch.obermuhlner:big-math:2.3.2")
     implementation("org.openjfx:javafx-controls:$javaFxVersion")
     implementation("org.openjfx:javafx-fxml:$javaFxVersion")
+    implementation("org.jetbrains.exposed:exposed-core:0.41.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.41.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.41.1")
+    implementation("org.xerial:sqlite-jdbc:3.45.1.0")
     testImplementation(kotlin("test"))
+    testImplementation("com.h2database:h2:2.2.224")
 }
 
 application {

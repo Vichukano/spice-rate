@@ -1,6 +1,7 @@
 package ru.vichukano.spicerate.core.calculations
 
 import org.junit.jupiter.api.Test
+import ru.vichukano.spicerate.core.calculations.deposit.EarCalculator
 import ru.vichukano.spicerate.core.model.Capitalization
 import ru.vichukano.spicerate.core.model.Rate
 import kotlin.test.assertEquals

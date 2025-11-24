@@ -1,25 +1,15 @@
 package ru.vichukano.spicerate.core.calculations
 
 import org.slf4j.LoggerFactory
-import ru.vichukano.spicerate.core.model.Capitalization
-import ru.vichukano.spicerate.core.model.Deposit
+import ru.vichukano.spicerate.core.calculations.deposit.DepositCalculatorProvider
+import ru.vichukano.spicerate.core.model.DepositRequest
 import ru.vichukano.spicerate.core.model.DepositDetails
 
-class CalculateProfit(
-    private val simple: DepositCalculator,
-    private val daily: DepositCalculator,
-    private val monthly: DepositCalculator,
-    private val yearly: DepositCalculator,
-) : (Deposit) -> DepositDetails {
+class CalculateProfit() : (DepositRequest) -> DepositDetails {
 
-    override fun invoke(deposit: Deposit): DepositDetails {
-        log.debug("Start to calculate deposit: {}", deposit)
-        val depositDetails = when (deposit.capitalization) {
-            Capitalization.NONE -> simple.calculateProfit(deposit)
-            Capitalization.DAY -> daily.calculateProfit(deposit)
-            Capitalization.MONTH -> monthly.calculateProfit(deposit)
-            Capitalization.YEAR -> yearly.calculateProfit(deposit)
-        }
+    override fun invoke(depositRequest: DepositRequest): DepositDetails {
+        log.debug("Start to calculate deposit: {}", depositRequest)
+        val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         log.debug("Calculated deposit details: {}", depositDetails)
         return depositDetails
     }

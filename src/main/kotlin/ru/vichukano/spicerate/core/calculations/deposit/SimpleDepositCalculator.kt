@@ -1,22 +1,22 @@
-package ru.vichukano.spicerate.core.calculations
+package ru.vichukano.spicerate.core.calculations.deposit
 
 import ru.vichukano.spicerate.core.ext.isBeforeOrEqual
 import ru.vichukano.spicerate.core.model.Amount
-import ru.vichukano.spicerate.core.model.Deposit
 import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.core.model.DepositRequest
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 
-class SimpleDepositCalculator : DepositCalculator {
+internal object SimpleDepositCalculator : DepositCalculator {
 
-    override fun calculateProfit(deposit: Deposit): DepositDetails {
-        val startDate = deposit.openDate
-        val endDate = startDate.plusMonths(deposit.periodMonths.toLong())
-        val startSum = deposit.sum.minimalUnits()
+    override fun calculateProfit(depositRequest: DepositRequest): DepositDetails {
+        val startDate = depositRequest.openDate
+        val endDate = startDate.plusMonths(depositRequest.termInMonths.toLong())
+        val startSum = depositRequest.sum.minimalUnits()
         val daysToDelta = HashMap<LocalDate, BigDecimal>()
         var curDate = startDate.plusDays(1)
-        val rateValue = deposit.rate.decimalValue()
+        val rateValue = depositRequest.rate.decimalValue()
         while (curDate.isBeforeOrEqual(endDate)) {
             val daysInYear = if (curDate.isLeapYear) LEAP_YEAR_DAYS else NON_LEAP_YEAR_DAYS
             val delta = startSum.toBigDecimal()
@@ -31,21 +31,22 @@ class SimpleDepositCalculator : DepositCalculator {
             .toBigInteger()
         val endSum = startSum.plus(delta)
         return DepositDetails(
-            depositId = deposit.id,
             startSum = Amount.create(startSum),
             endSum = Amount.create(endSum),
-            delta = Amount.create(delta),
+            profit = Amount.create(delta),
             startDate = startDate,
             endDate = endDate,
-            baseRate = deposit.rate,
-            effectiveRate = deposit.rate,
-            capitalization = deposit.capitalization,
-            statistics = mapOf(endDate to Amount.create(delta))
+            baseRate = depositRequest.rate,
+            effectiveRate = depositRequest.rate,
+            capitalization = depositRequest.capitalization,
+            statistics = mapOf(endDate to Amount.create(delta)),
+            dailyStatistics = daysToDelta.mapValues {
+                Amount.create(
+                    it.value.setScale(2, RoundingMode.HALF_UP).toBigInteger()
+                )
+            },
+            termInMonths = depositRequest.termInMonths,
         )
     }
 
-    private companion object {
-        private val LEAP_YEAR_DAYS = BigDecimal("366.0")
-        private val NON_LEAP_YEAR_DAYS = BigDecimal("365.0")
-    }
 }
