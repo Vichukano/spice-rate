@@ -26,8 +26,8 @@ class ExposedCalculationRepositoryTest {
     @BeforeEach
     fun reset() {
         transaction(db) {
-            SchemaUtils.drop(DailyStatisticTable, StatisticTable, CalculationTable)
-            SchemaUtils.create(CalculationTable, StatisticTable, DailyStatisticTable)
+            SchemaUtils.drop(DailyStatisticTable, StatisticTable, ReplenishmentTable, CalculationTable)
+            SchemaUtils.create(CalculationTable, StatisticTable, DailyStatisticTable, ReplenishmentTable)
         }
     }
 
@@ -109,7 +109,13 @@ class ExposedCalculationRepositoryTest {
         effectiveRate = Rate.create(BigDecimal("0.1050")),
         capitalization = Capitalization.YEAR,
         dailyStatistics = mapOf(LocalDate.now() to Amount.create(100L)),
-        statistics = mapOf(LocalDate.now() to Amount.create(1000L))
+        statistics = mapOf(LocalDate.now() to Amount.create(1000L)),
+        replenishments = listOf(
+            ru.vichukano.spicerate.core.model.Replenishment(
+                sum = Amount.create(500L),
+                date = LocalDate.now().plusMonths(2)
+            )
+        )
     )
 
 }

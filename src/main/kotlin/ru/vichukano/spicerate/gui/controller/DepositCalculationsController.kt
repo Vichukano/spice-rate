@@ -5,6 +5,7 @@ import ru.vichukano.spicerate.core.calculations.CalculateProfit
 import ru.vichukano.spicerate.core.calculations.ReplenishDeposit
 import ru.vichukano.spicerate.core.model.*
 import ru.vichukano.spicerate.core.storage.CalculationRepository
+import ru.vichukano.spicerate.core.model.ReplenishmentCommand
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
@@ -68,7 +69,7 @@ class DepositCalculationsController(
             .also { log.debug("Found details: {}", it) }
     }
 
-    fun replenish(replenishment: Replenishment) {
+    fun replenish(replenishment: ReplenishmentCommand) {
         log.info("Replenishing deposit with replenishment: {}", replenishment)
         runCatching { replenishDeposit(replenishment) }
             .onFailure { log.error("Failed to replenish with: {}", replenishment, it) }

@@ -5,16 +5,16 @@ import ru.vichukano.spicerate.core.calculations.deposit.DepositCalculatorProvide
 import ru.vichukano.spicerate.core.calculations.replenishment.DepositDetailsMerger.merge
 import ru.vichukano.spicerate.core.model.DepositDetails
 import ru.vichukano.spicerate.core.model.DepositRequest
-import ru.vichukano.spicerate.core.model.Replenishment
+import ru.vichukano.spicerate.core.model.ReplenishmentCommand
 import ru.vichukano.spicerate.core.storage.ExposedCalculationRepository
 import java.time.LocalDate
 import java.time.Period
 
 class ReplenishDeposit(
     private val repository: ExposedCalculationRepository,
-) : (Replenishment) -> DepositDetails {
+) : (ReplenishmentCommand) -> DepositDetails {
 
-    override fun invoke(replenishment: Replenishment): DepositDetails {
+    override fun invoke(replenishment: ReplenishmentCommand): DepositDetails {
         log.debug("Start to apply replenishment: {}", replenishment)
         val depositDetails: DepositDetails = requireNotNull(repository.findById(replenishment.depositId))
         if (replenishment.replenishmentDate.isBefore(depositDetails.startDate)) {
@@ -36,7 +36,7 @@ class ReplenishDeposit(
             endDate = depositDetails.endDate
         )
         val replenishmentDetails: DepositDetails = DepositCalculatorProvider.calculateProfit(replenishmentPart)
-        val updatedDetails: DepositDetails = merge(depositDetails, replenishmentDetails).also {
+        val updatedDetails: DepositDetails = merge(depositDetails, replenishmentDetails, replenishment).also {
             log.debug("Deposit details after replenishment: {}", it)
         }
         repository.update(updatedDetails)

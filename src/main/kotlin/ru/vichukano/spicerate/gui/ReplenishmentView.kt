@@ -6,12 +6,11 @@ import javafx.geometry.Insets
 import javafx.scene.control.Button
 import javafx.scene.control.DatePicker
 import javafx.scene.control.Label
-import javafx.scene.control.TextField
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import ru.vichukano.spicerate.core.model.Amount
-import ru.vichukano.spicerate.core.model.Replenishment
+import ru.vichukano.spicerate.core.model.ReplenishmentCommand
 import ru.vichukano.spicerate.gui.controller.DepositCalculationsController
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -46,7 +45,7 @@ class ReplenishmentView(
 
         replenishButton.setOnAction {
             val amountValue = BigDecimal(amountField.text.replace(',', '.'))
-            val replenishment = Replenishment(
+            val replenishment = ReplenishmentCommand(
                 depositId = depositId,
                 sum = Amount.create(
                     amountValue.multiply(BigDecimal(100)).toBigInteger()

@@ -1,12 +1,15 @@
 package ru.vichukano.spicerate.core.calculations.replenishment
 
 import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.core.model.Replenishment
+import ru.vichukano.spicerate.core.model.ReplenishmentCommand
 
 internal object DepositDetailsMerger {
 
     fun merge(
         first: DepositDetails,
         second: DepositDetails,
+        replenishment: ReplenishmentCommand
     ): DepositDetails {
         val originalStats = first.statistics
         val updatedStats = originalStats.toMutableMap()
@@ -22,6 +25,11 @@ internal object DepositDetailsMerger {
                 updatedDaily[entry.key] = amount + entry.value
             }
         }
+        val newReplenishment = Replenishment(
+            sum = replenishment.sum,
+            date = replenishment.replenishmentDate
+        )
+        val updatedReplenishments = first.replenishments + newReplenishment
         return DepositDetails(
             id = first.id,
             startSum = first.startSum,
@@ -35,6 +43,7 @@ internal object DepositDetailsMerger {
             statistics = updatedStats,
             dailyStatistics = updatedDaily,
             termInMonths = first.termInMonths,
+            replenishments = updatedReplenishments
         )
     }
 

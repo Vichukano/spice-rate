@@ -7,7 +7,12 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import ru.vichukano.spicerate.core.calculations.deposit.DepositCalculatorProvider
-import ru.vichukano.spicerate.core.model.*
+import ru.vichukano.spicerate.core.model.Amount
+import ru.vichukano.spicerate.core.model.Capitalization
+import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.core.model.DepositRequest
+import ru.vichukano.spicerate.core.model.Rate
+import ru.vichukano.spicerate.core.model.ReplenishmentCommand
 import ru.vichukano.spicerate.core.storage.CalculationTable
 import ru.vichukano.spicerate.core.storage.DailyStatisticTable
 import ru.vichukano.spicerate.core.storage.ExposedCalculationRepository
@@ -39,7 +44,7 @@ class ReplenishDepositTest {
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
-        val replenishment = Replenishment(
+        val replenishment = ReplenishmentCommand(
             sum = Amount.create(5500, 0),
             replenishmentDate = openDate.plusMonths(4),
             depositId = depositDetails.id
@@ -65,7 +70,7 @@ class ReplenishDepositTest {
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
-        val replenishment = Replenishment(
+        val replenishment = ReplenishmentCommand(
             sum = Amount.create(100500, 0),
             replenishmentDate = openDate.plusMonths(7),
             depositId = depositDetails.id
@@ -90,7 +95,7 @@ class ReplenishDepositTest {
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
-        val replenishment = Replenishment(
+        val replenishment = ReplenishmentCommand(
             sum = Amount.create(7777, 0),
             replenishmentDate = openDate.plusMonths(3),
             depositId = depositDetails.id
@@ -115,7 +120,7 @@ class ReplenishDepositTest {
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
-        val replenishment = Replenishment(
+        val replenishment = ReplenishmentCommand(
             sum = Amount.create(1_000_500, 0),
             replenishmentDate = openDate.plusMonths(10),
             depositId = depositDetails.id

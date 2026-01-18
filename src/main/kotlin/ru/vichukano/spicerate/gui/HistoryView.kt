@@ -21,6 +21,7 @@ class HistoryView(
 ) : AnchorPane() {
     private val table = TableView<HistoryItem>()
     private var stage: Stage? = null
+    private val openDetailsViews = mutableMapOf<String, DetailsView>()
     val isShowing: Boolean
         get() = stage?.isShowing == true
 
@@ -35,8 +36,17 @@ class HistoryView(
         table.setOnMouseClicked { event ->
             if (event.clickCount == 2) {
                 table.selectionModel.selectedItem?.let { selectedItem ->
-                    controller.getDetailsById(selectedItem.id)?.let { details ->
-                        DetailsView(details).show()
+                    val existingView = openDetailsViews[selectedItem.id]
+                    if (existingView != null && existingView.isShowing) {
+                        existingView.requestFocus()
+                    } else {
+                        controller.getDetailsById(selectedItem.id)?.let { details ->
+                            val detailsView = DetailsView(details)
+                            openDetailsViews[selectedItem.id] = detailsView
+                            detailsView.show {
+                                openDetailsViews.remove(selectedItem.id)
+                            }
+                        }
                     }
                 }
             }
@@ -72,7 +82,14 @@ class HistoryView(
                         val view = ReplenishmentView(
                             UUID.fromString(item.id),
                             controller,
-                            onReplenished = { update(controller.getAllCalculations()) }
+                            onReplenished = {
+                                val allCalculations = controller.getAllCalculations()
+                                update(allCalculations)
+                                val updatedDetails = allCalculations.find { it.id.toString() == item.id }
+                                if (updatedDetails != null) {
+                                    openDetailsViews[item.id]?.updateView(updatedDetails)
+                                }
+                            }
                         )
                         val stage = Stage()
                         stage.initOwner(btn.scene.window)

@@ -5,3 +5,8 @@ data class TableItem(
     val date: String,
     val amount: String,
 )
+
+data class ReplenishmentTableItem(
+    val date: String,
+    val amount: String
+)

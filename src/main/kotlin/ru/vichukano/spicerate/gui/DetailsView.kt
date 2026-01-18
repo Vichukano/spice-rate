@@ -3,6 +3,7 @@ package ru.vichukano.spicerate.gui
 import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.Scene
+import javafx.scene.control.Label
 import javafx.scene.control.SplitPane
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
@@ -23,6 +24,7 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
     private val outputEar = TextField()
     private val outputCapitalization = TextField()
     private val outputStatisticsPane = TableView<TableItem>()
+    private val replenishmentPane = TableView<ReplenishmentTableItem>()
     private var stage: Stage? = null
 
     init {
@@ -32,13 +34,25 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
         updateOutputs(depositDetails)
     }
 
-    fun show() {
+    fun show(onClose: () -> Unit = {}) {
         stage = Stage()
         stage?.let {
             it.title = "Детальная информация"
             it.scene = Scene(this, 800.0, 600.0)
+            it.setOnCloseRequest { onClose() }
             it.show()
         }
+    }
+
+    fun updateView(depositDetails: DepositDetails) {
+        updateOutputs(depositDetails)
+    }
+
+    val isShowing: Boolean
+        get() = stage?.isShowing == true
+
+    override fun requestFocus() {
+        stage?.requestFocus()
     }
 
     private fun createMainLayout(): SplitPane {
@@ -52,7 +66,21 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
             setRightAnchor(this, 0.0)
         }
         initStatisticsPane()
-        mainSplitPane.items.addAll(createOutputGrid(), outputStatisticsPane)
+        initReplenishmentPane()
+        val statisticsVBox = VBox().apply {
+            children.addAll(Label("Выплаты"), outputStatisticsPane)
+            VBox.setVgrow(outputStatisticsPane, Priority.ALWAYS)
+        }
+        val replenishmentVBox = VBox().apply {
+            children.addAll(Label("Пополнения"), replenishmentPane)
+            VBox.setVgrow(replenishmentPane, Priority.ALWAYS)
+        }
+        val bottomSplitPane = SplitPane().apply {
+            orientation = javafx.geometry.Orientation.HORIZONTAL
+            setDividerPositions(0.5)
+            items.addAll(statisticsVBox, replenishmentVBox)
+        }
+        mainSplitPane.items.addAll(createOutputGrid(), bottomSplitPane)
         return mainSplitPane
     }
 
@@ -93,6 +121,7 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
         outputEar.text = depositInfo.effectiveRate.toString()
         outputCapitalization.text = depositInfo.capitalization.value
         populateStatisticsPane(depositInfo.statistics)
+        populateReplenishmentPane(depositInfo.replenishments)
     }
 
     private fun populateStatisticsPane(statistics: Map<LocalDate, Amount>) {
@@ -111,6 +140,18 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
         outputStatisticsPane.isVisible = true
     }
 
+    private fun populateReplenishmentPane(replenishments: List<ru.vichukano.spicerate.core.model.Replenishment>) {
+        replenishmentPane.items.clear()
+        replenishments.forEach {
+            replenishmentPane.items.add(
+                ReplenishmentTableItem(
+                    date = it.date.toString(),
+                    amount = it.sum.toFormattedString()
+                )
+            )
+        }
+    }
+
     private fun initStatisticsPane() {
         outputStatisticsPane.isVisible = false
         outputStatisticsPane.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
@@ -121,8 +162,26 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
         )
     }
 
+    private fun initReplenishmentPane() {
+        replenishmentPane.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
+        replenishmentPane.columns.addAll(
+            createReplenishmentTableColumn("Дата", "date"),
+            createReplenishmentTableColumn("Сумма", "amount")
+        )
+    }
+
     private fun createTableColumn(name: String, propertyName: String): TableColumn<TableItem, String> {
         return TableColumn<TableItem, String>(name).apply {
+            cellValueFactory = PropertyValueFactory(propertyName)
+            isSortable = false
+        }
+    }
+
+    private fun createReplenishmentTableColumn(
+        name: String,
+        propertyName: String
+    ): TableColumn<ReplenishmentTableItem, String> {
+        return TableColumn<ReplenishmentTableItem, String>(name).apply {
             cellValueFactory = PropertyValueFactory(propertyName)
             isSortable = false
         }

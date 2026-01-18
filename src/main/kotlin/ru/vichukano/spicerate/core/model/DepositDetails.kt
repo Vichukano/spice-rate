@@ -18,4 +18,5 @@ data class DepositDetails(
     val capitalization: Capitalization,
     val dailyStatistics: Map<LocalDate, Amount> = mapOf(),
     val statistics: Map<LocalDate, Amount>,
+    val replenishments: List<Replenishment> = emptyList()
 )

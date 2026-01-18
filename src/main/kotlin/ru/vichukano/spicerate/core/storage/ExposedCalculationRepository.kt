@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import ru.vichukano.spicerate.core.model.Amount
 import ru.vichukano.spicerate.core.model.Capitalization
 import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.core.model.Replenishment
 import ru.vichukano.spicerate.core.model.Rate
 import java.time.LocalDate
 import java.util.*
@@ -15,7 +16,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
 
     init {
         transaction(db) {
-            SchemaUtils.create(CalculationTable, StatisticTable, DailyStatisticTable)
+            SchemaUtils.create(CalculationTable, StatisticTable, DailyStatisticTable, ReplenishmentTable)
         }
     }
 
@@ -47,6 +48,14 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
                     it[DailyStatisticTable.calculationId] = details.id
                     it[DailyStatisticTable.date] = date
                     it[DailyStatisticTable.amount] = amount.minimalUnits().toLong()
+                }
+            }
+            ReplenishmentTable.deleteWhere { ReplenishmentTable.calculationId eq details.id }
+            details.replenishments.forEach { replenishment ->
+                ReplenishmentTable.insert {
+                    it[ReplenishmentTable.calculationId] = details.id
+                    it[ReplenishmentTable.date] = replenishment.date
+                    it[ReplenishmentTable.amount] = replenishment.sum.minimalUnits().toLong()
                 }
             }
         }.also {
@@ -84,6 +93,13 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
                     it[DailyStatisticTable.amount] = amount.minimalUnits().toLong()
                 }
             }
+            details.replenishments.forEach { replenishment ->
+                ReplenishmentTable.insert {
+                    it[ReplenishmentTable.calculationId] = calculationId
+                    it[ReplenishmentTable.date] = replenishment.date
+                    it[ReplenishmentTable.amount] = replenishment.sum.minimalUnits().toLong()
+                }
+            }
         }.also {
             log.info("Saved DepositDetails with id: {}", details.id)
             log.debug("Saved DepositDetails: {}", details)
@@ -98,11 +114,19 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
                     .associate { st -> st[DailyStatisticTable.date] to Amount.create(st[DailyStatisticTable.amount]) }
                 val statistics = StatisticTable.select { StatisticTable.calculationId eq id }
                     .associate { st -> st[StatisticTable.date] to Amount.create(st[StatisticTable.amount]) }
+                val replenishments = ReplenishmentTable.select { ReplenishmentTable.calculationId eq id }
+                    .map { replenishment ->
+                        Replenishment(
+                            sum = Amount.create(replenishment[ReplenishmentTable.amount]),
+                            date = replenishment[ReplenishmentTable.date]
+                        )
+                    }
                 toDetails(
                     id = id,
                     row = it,
                     dailyStatistics = dailyStatistics,
                     statistics = statistics,
+                    replenishments = replenishments
                 )
             }
         }
@@ -117,11 +141,19 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
                         .associate { st -> st[DailyStatisticTable.date] to Amount.create(st[DailyStatisticTable.amount]) }
                     val statistics = StatisticTable.select { StatisticTable.calculationId eq id }
                         .associate { st -> st[StatisticTable.date] to Amount.create(st[StatisticTable.amount]) }
+                    val replenishments = ReplenishmentTable.select { ReplenishmentTable.calculationId eq id }
+                        .map { replenishment ->
+                            Replenishment(
+                                sum = Amount.create(replenishment[ReplenishmentTable.amount]),
+                                date = replenishment[ReplenishmentTable.date]
+                            )
+                        }
                     toDetails(
                         id = id,
                         row = it,
                         dailyStatistics = dailyStatistics,
-                        statistics = statistics
+                        statistics = statistics,
+                        replenishments = replenishments
                     )
                 }.singleOrNull()
         }
@@ -131,6 +163,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
         transaction(db) {
             DailyStatisticTable.deleteWhere { DailyStatisticTable.calculationId eq id }
             StatisticTable.deleteWhere { StatisticTable.calculationId eq id }
+            ReplenishmentTable.deleteWhere { ReplenishmentTable.calculationId eq id }
             CalculationTable.deleteWhere { CalculationTable.id eq id }
         }.also { log.info("Deleted DepositDetails with id: {}", id) }
     }
@@ -139,6 +172,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
         transaction(db) {
             DailyStatisticTable.deleteAll()
             StatisticTable.deleteAll()
+            ReplenishmentTable.deleteAll()
             CalculationTable.deleteAll()
         }.also { log.info("Deleted all DepositDetails") }
     }
@@ -148,6 +182,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
         row: ResultRow,
         dailyStatistics: Map<LocalDate, Amount>,
         statistics: Map<LocalDate, Amount>,
+        replenishments: List<Replenishment>
     ): DepositDetails = DepositDetails(
         id = id,
         createdAt = row[CalculationTable.createdAt],
@@ -162,6 +197,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
         capitalization = Capitalization.valueOf(row[CalculationTable.capitalization]),
         dailyStatistics = dailyStatistics,
         statistics = statistics,
+        replenishments = replenishments
     )
 
     private companion object {
