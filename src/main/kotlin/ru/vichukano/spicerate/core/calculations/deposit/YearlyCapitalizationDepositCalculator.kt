@@ -13,7 +13,7 @@ internal object YearlyCapitalizationDepositCalculator : DepositCalculator {
 
     override fun calculateProfit(depositRequest: DepositRequest): DepositDetails {
         val startDate = depositRequest.openDate
-        val endDate = startDate.plusMonths(depositRequest.termInMonths.toLong())
+        val endDate = depositRequest.endDate ?: startDate.plusMonths(depositRequest.termInMonths.toLong())
         val startSum = depositRequest.sum.minimalUnits()
         val yearsToDelta = HashMap<LocalDate, BigDecimal>()
         val buffer = ArrayList<BigDecimal>()

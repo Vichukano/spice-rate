@@ -2,8 +2,8 @@ package ru.vichukano.spicerate.core.calculations.deposit
 
 import ru.vichukano.spicerate.core.ext.isBeforeOrEqual
 import ru.vichukano.spicerate.core.model.Amount
-import ru.vichukano.spicerate.core.model.DepositRequest
 import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.core.model.DepositRequest
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -13,7 +13,7 @@ internal object DailyCapitalizationDepositCalculator : DepositCalculator {
 
     override fun calculateProfit(depositRequest: DepositRequest): DepositDetails {
         val startDate = depositRequest.openDate
-        val endDate = startDate.plusMonths(depositRequest.termInMonths.toLong())
+        val endDate = depositRequest.endDate ?: startDate.plusMonths(depositRequest.termInMonths.toLong())
         val startSum = depositRequest.sum.minimalUnits()
         val daysToDelta = HashMap<LocalDate, BigDecimal>()
         var curDate = startDate.plusDays(1)

@@ -10,4 +10,5 @@ data class DepositRequest(
     val rate: Rate,
     val capitalization: Capitalization,
     val createdAt: Instant = Instant.now(),
+    var endDate: LocalDate? = null
 )

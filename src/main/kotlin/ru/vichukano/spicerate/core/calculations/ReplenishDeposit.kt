@@ -33,6 +33,7 @@ class ReplenishDeposit(
             ),
             rate = depositDetails.baseRate,
             capitalization = depositDetails.capitalization,
+            endDate = depositDetails.endDate
         )
         val replenishmentDetails: DepositDetails = DepositCalculatorProvider.calculateProfit(replenishmentPart)
         val updatedDetails: DepositDetails = merge(depositDetails, replenishmentDetails).also {

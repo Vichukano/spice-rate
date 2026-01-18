@@ -12,7 +12,7 @@ internal object SimpleDepositCalculator : DepositCalculator {
 
     override fun calculateProfit(depositRequest: DepositRequest): DepositDetails {
         val startDate = depositRequest.openDate
-        val endDate = startDate.plusMonths(depositRequest.termInMonths.toLong())
+        val endDate = depositRequest.endDate ?: startDate.plusMonths(depositRequest.termInMonths.toLong())
         val startSum = depositRequest.sum.minimalUnits()
         val daysToDelta = HashMap<LocalDate, BigDecimal>()
         var curDate = startDate.plusDays(1)
