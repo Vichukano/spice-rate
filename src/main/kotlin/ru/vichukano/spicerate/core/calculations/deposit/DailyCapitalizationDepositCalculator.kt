@@ -49,6 +49,7 @@ internal object DailyCapitalizationDepositCalculator : DepositCalculator {
             statistics = statistics,
             dailyStatistics = statistics.toMap(),
             termInMonths = depositRequest.termInMonths,
+            description = depositRequest.description
         )
     }
 

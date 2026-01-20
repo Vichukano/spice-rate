@@ -20,7 +20,8 @@ class DailyCapitalizationDepositCalculatorTest {
             openDate = LocalDate.of(2025, 7, 6),
             termInMonths = 12,
             rate = Rate.create("13,3"),
-            capitalization = Capitalization.DAY
+            capitalization = Capitalization.DAY,
+            description = "test",
         )
         //when
         val result = testTarget.calculateProfit(dailyDepositRequestOne)

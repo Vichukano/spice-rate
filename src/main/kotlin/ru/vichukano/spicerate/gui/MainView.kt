@@ -20,6 +20,7 @@ class MainView(
     private val inputOpenDate = DatePicker()
     private val inputPeriodMonths = IntegerValueTextField()
     private val inputCapitalization = ComboBox<String>()
+    private val inputDescription = TextArea()
     private val calculateButton = Button("Рассчитать")
     private val saveButton = Button("Сохранить")
     private val historyButton = Button("История")
@@ -59,13 +60,13 @@ class MainView(
 
     private fun createInputGrid(): GridPane {
         return GridPane().apply {
-            prefHeight = 244.0
+            prefHeight = 300.0
             prefWidth = 295.0
             columnConstraints.addAll(
                 ColumnConstraints().apply { hgrow = Priority.SOMETIMES; minWidth = 10.0; prefWidth = 100.0 },
                 ColumnConstraints().apply { hgrow = Priority.SOMETIMES; minWidth = 10.0; prefWidth = 100.0 }
             )
-            repeat(6) {
+            repeat(7) {
                 rowConstraints.add(RowConstraints().apply {
                     minHeight = 10.0; prefHeight = 30.0; vgrow = Priority.SOMETIMES
                 })
@@ -82,10 +83,13 @@ class MainView(
             addRow(2, "Дата открытия", inputOpenDate)
             addRow(3, "Срок в месяцах", inputPeriodMonths)
             addRow(4, "Капитализация", inputCapitalization)
-            add(calculateButton, 0, 5)
+            addRow(5, "Описание", inputDescription)
+            add(calculateButton, 0, 6)
             GridPane.setMargin(calculateButton, Insets(0.0, 20.0, 0.0, 20.0))
             calculateButton.prefHeight = 30.0
             calculateButton.prefWidth = 185.0
+            inputDescription.maxHeight = 60.0
+            inputDescription.prefRowCount = 2
         }
     }
 
@@ -133,6 +137,13 @@ class MainView(
         inputOpenDate.value = LocalDate.now()
         inputCapitalization.value = Capitalization.NONE.value
         inputCapitalization.items.addAll(Capitalization.entries.map { it.value })
+        inputDescription.promptText = "Введите описание депозита..."
+        inputDescription.textProperty().addListener { _, _, newValue ->
+            if (newValue != null && newValue.length > 256) {
+                inputDescription.text = newValue.substring(0, 256)
+                inputDescription.positionCaret(256) // Position cursor at the end
+            }
+        }
     }
 
     private fun initActions() {
@@ -173,6 +184,7 @@ class MainView(
             periodMonths = inputPeriodMonths.text.toInt(),
             capitalizationValue = inputCapitalization.value,
             openDate = inputOpenDate.value,
+            description = inputDescription.text.take(256) // Limit to 256 characters
         )
         updateOutputs(depositInfo)
     }

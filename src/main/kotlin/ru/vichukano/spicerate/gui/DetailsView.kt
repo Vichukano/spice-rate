@@ -1,28 +1,31 @@
 package ru.vichukano.spicerate.gui
 
 import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Scene
-import javafx.scene.control.Label
-import javafx.scene.control.SplitPane
-import javafx.scene.control.TableColumn
-import javafx.scene.control.TableView
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.*
 import javafx.scene.text.Text
 import javafx.stage.Stage
 import ru.vichukano.spicerate.core.model.Amount
 import ru.vichukano.spicerate.core.model.DepositDetails
+import ru.vichukano.spicerate.gui.controller.DepositCalculationsController
 import java.time.LocalDate
 
-class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
+class DetailsView(
+    private val depositDetails: DepositDetails,
+    private val controller: DepositCalculationsController
+) : VBox() {
     private val outputInitialSum = TextField()
     private val outputSum = TextField()
     private val outputDelta = TextField()
     private val outputBaseRate = TextField()
     private val outputEar = TextField()
     private val outputCapitalization = TextField()
+    private val descriptionField = TextArea()
+    private val saveDescriptionButton = Button("Сохранить описание")
     private val outputStatisticsPane = TableView<TableItem>()
     private val replenishmentPane = TableView<ReplenishmentTableItem>()
     private var stage: Stage? = null
@@ -30,8 +33,21 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
     init {
         prefHeight = 600.0
         prefWidth = 800.0
+        spacing = 10.0
+        padding = Insets(10.0)
         children.add(createMainLayout())
         updateOutputs(depositDetails)
+        descriptionField.isWrapText = true
+        descriptionField.prefRowCount = 3
+        descriptionField.prefHeight = 80.0
+        saveDescriptionButton.setOnAction { saveDescription() }
+        children.addAll(descriptionField, saveDescriptionButton)
+    }
+
+    private fun saveDescription() {
+        val updatedDetails = depositDetails.copy(description = descriptionField.text.take(256))
+        controller.updateDepositDetails(updatedDetails)
+        updateView(updatedDetails)
     }
 
     fun show(onClose: () -> Unit = {}) {
@@ -60,20 +76,18 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
             orientation = javafx.geometry.Orientation.VERTICAL
             setDividerPositions(0.5)
             setPrefSize(800.0, 600.0)
-            setTopAnchor(this, 0.0)
-            setBottomAnchor(this, 0.0)
-            setLeftAnchor(this, 0.0)
-            setRightAnchor(this, 0.0)
         }
         initStatisticsPane()
         initReplenishmentPane()
         val statisticsVBox = VBox().apply {
+            alignment = Pos.CENTER
             children.addAll(Label("Выплаты"), outputStatisticsPane)
-            VBox.setVgrow(outputStatisticsPane, Priority.ALWAYS)
+            setVgrow(outputStatisticsPane, Priority.ALWAYS)
         }
         val replenishmentVBox = VBox().apply {
+            alignment = Pos.CENTER
             children.addAll(Label("Пополнения"), replenishmentPane)
-            VBox.setVgrow(replenishmentPane, Priority.ALWAYS)
+            setVgrow(replenishmentPane, Priority.ALWAYS)
         }
         val bottomSplitPane = SplitPane().apply {
             orientation = javafx.geometry.Orientation.HORIZONTAL
@@ -120,6 +134,7 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
         outputBaseRate.text = depositInfo.baseRate.toString()
         outputEar.text = depositInfo.effectiveRate.toString()
         outputCapitalization.text = depositInfo.capitalization.value
+        descriptionField.text = depositInfo.description
         populateStatisticsPane(depositInfo.statistics)
         populateReplenishmentPane(depositInfo.replenishments)
     }
@@ -142,13 +157,16 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
 
     private fun populateReplenishmentPane(replenishments: List<ru.vichukano.spicerate.core.model.Replenishment>) {
         replenishmentPane.items.clear()
+        var index = 1
         replenishments.forEach {
             replenishmentPane.items.add(
                 ReplenishmentTableItem(
+                    number = "$index",
                     date = it.date.toString(),
                     amount = it.sum.toFormattedString()
                 )
             )
+            index++
         }
     }
 
@@ -165,6 +183,7 @@ class DetailsView(depositDetails: DepositDetails) : AnchorPane() {
     private fun initReplenishmentPane() {
         replenishmentPane.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         replenishmentPane.columns.addAll(
+            createReplenishmentTableColumn("Номер", "number"),
             createReplenishmentTableColumn("Дата", "date"),
             createReplenishmentTableColumn("Сумма", "amount")
         )

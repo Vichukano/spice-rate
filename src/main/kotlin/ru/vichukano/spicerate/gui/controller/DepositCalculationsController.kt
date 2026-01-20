@@ -23,7 +23,8 @@ class DepositCalculationsController(
         inputRate: String,
         periodMonths: Int,
         capitalizationValue: String,
-        openDate: LocalDate
+        openDate: LocalDate,
+        description: String
     ): DepositDetails {
         val amountRaw = BigDecimal(inputSum.replace("_", "").replace(',', '.'))
             .multiply(BigDecimal(100))
@@ -34,6 +35,7 @@ class DepositCalculationsController(
             rate = Rate.create(inputRate),
             termInMonths = periodMonths,
             capitalization = Capitalization.fromValue(capitalizationValue),
+            description = description.take(256),
             openDate = openDate,
         )
         log.debug("Calculating for deposit: {}", depositRequest)
@@ -67,6 +69,11 @@ class DepositCalculationsController(
         log.debug("Getting details for calculation with id: {}", id)
         return repository.findById(UUID.fromString(id))
             .also { log.debug("Found details: {}", it) }
+    }
+
+    fun updateDepositDetails(details: DepositDetails) {
+        repository.update(details)
+        log.debug("Updated calculation for deposit: {}", details.id)
     }
 
     fun replenish(replenishment: ReplenishmentCommand) {

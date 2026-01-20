@@ -43,7 +43,8 @@ internal object DepositDetailsMerger {
             statistics = updatedStats,
             dailyStatistics = updatedDaily,
             termInMonths = first.termInMonths,
-            replenishments = updatedReplenishments
+            replenishments = updatedReplenishments,
+            description = first.description,
         )
     }
 

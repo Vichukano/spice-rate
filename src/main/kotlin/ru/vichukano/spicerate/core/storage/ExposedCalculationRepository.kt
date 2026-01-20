@@ -29,6 +29,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
                 it[startDate] = details.startDate
                 it[endDate] = details.endDate
                 it[capitalization] = details.capitalization.name
+                it[description] = details.description.take(256)
                 it[endSum] = details.endSum.minimalUnits().toLong()
                 it[profit] = details.profit.minimalUnits().toLong()
                 it[effectiveRate] = details.effectiveRate.decimalValue()
@@ -74,6 +75,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
                 it[startDate] = details.startDate
                 it[endDate] = details.endDate
                 it[capitalization] = details.capitalization.name
+                it[description] = details.description.take(256)
                 it[endSum] = details.endSum.minimalUnits().toLong()
                 it[profit] = details.profit.minimalUnits().toLong()
                 it[effectiveRate] = details.effectiveRate.decimalValue()
@@ -195,6 +197,7 @@ class ExposedCalculationRepository(private val db: Database) : CalculationReposi
         termInMonths = row[CalculationTable.termInMonths],
         effectiveRate = Rate.create(row[CalculationTable.effectiveRate]),
         capitalization = Capitalization.valueOf(row[CalculationTable.capitalization]),
+        description = row[CalculationTable.description],
         dailyStatistics = dailyStatistics,
         statistics = statistics,
         replenishments = replenishments

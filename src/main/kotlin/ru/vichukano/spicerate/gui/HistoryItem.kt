@@ -10,5 +10,6 @@ data class HistoryItem(
     val effectiveRate: Rate,
     val capitalization: String,
     val amount: Amount,
-    val finalAmount: Amount
+    val finalAmount: Amount,
+    val shortDesc: String,
 )

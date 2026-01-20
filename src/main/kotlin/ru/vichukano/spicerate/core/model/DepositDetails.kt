@@ -16,6 +16,7 @@ data class DepositDetails(
     val termInMonths: Int,
     val effectiveRate: Rate,
     val capitalization: Capitalization,
+    val description: String,
     val dailyStatistics: Map<LocalDate, Amount> = mapOf(),
     val statistics: Map<LocalDate, Amount>,
     val replenishments: List<Replenishment> = emptyList()

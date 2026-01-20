@@ -46,6 +46,7 @@ internal object SimpleDepositCalculator : DepositCalculator {
                 )
             },
             termInMonths = depositRequest.termInMonths,
+            description = depositRequest.description,
         )
     }
 

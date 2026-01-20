@@ -7,6 +7,7 @@ data class TableItem(
 )
 
 data class ReplenishmentTableItem(
+    val number: String,
     val date: String,
     val amount: String
 )

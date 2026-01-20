@@ -24,7 +24,7 @@ internal object YearlyCapitalizationDepositCalculator : DepositCalculator {
         val dailyStatistic = mutableMapOf<LocalDate, Amount>()
         while (currDate.isBeforeOrEqual(endDate)) {
             val daysInYear = if (currDate.isLeapYear) LEAP_YEAR_DAYS else NON_LEAP_YEAR_DAYS
-            if (currDate == checkPointDate) {
+            if (currDate.compareTo(checkPointDate) == 0) {
                 val delta = buffer.fold(BigDecimal.ZERO) { acc, delta -> acc.add(delta) }
                 total += delta
                 buffer.clear()
@@ -62,6 +62,7 @@ internal object YearlyCapitalizationDepositCalculator : DepositCalculator {
             statistics = statistics,
             dailyStatistics = dailyStatistic,
             termInMonths = depositRequest.termInMonths,
+            description = depositRequest.description,
         )
     }
 

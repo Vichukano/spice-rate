@@ -21,21 +21,24 @@ class CalculateProfitTest {
             openDate = LocalDate.of(2025, 7, 6),
             termInMonths = 12,
             rate = Rate.create("13,3"),
-            capitalization = Capitalization.NONE
+            capitalization = Capitalization.NONE,
+            description = "test",
         )
         val simpleDepositRequestTwo = DepositRequest(
             sum = Amount.create(200100L, 0),
             openDate = LocalDate.of(2025, 7, 6),
             termInMonths = 33,
             rate = Rate.create("26,13"),
-            capitalization = Capitalization.NONE
+            capitalization = Capitalization.NONE,
+            description = "test",
         )
         val simpleDepositRequestThree = DepositRequest(
             sum = Amount.create(BigInteger("33333300")),
             openDate = LocalDate.of(2025, 7, 6),
             termInMonths = 3,
             rate = Rate.create("10,99"),
-            capitalization = Capitalization.NONE
+            capitalization = Capitalization.NONE,
+            description = "test",
         )
         //when
         val resultOne = testTarget.calculateProfit(simpleDepositRequestOne)

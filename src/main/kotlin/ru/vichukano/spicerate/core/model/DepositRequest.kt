@@ -9,6 +9,7 @@ data class DepositRequest(
     val termInMonths: Int,
     val rate: Rate,
     val capitalization: Capitalization,
+    val description: String,
     val createdAt: Instant = Instant.now(),
     var endDate: LocalDate? = null
 )

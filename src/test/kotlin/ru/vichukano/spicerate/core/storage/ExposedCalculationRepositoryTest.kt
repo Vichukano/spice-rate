@@ -95,6 +95,45 @@ class ExposedCalculationRepositoryTest {
         assertTrue(found.isEmpty())
     }
 
+    @Test
+    fun `should save and retrieve description`() {
+        val id = UUID.randomUUID()
+        val description = "Test deposit description"
+        val detailsWithDescription = randomDetailsWithDescription(id, description)
+
+        repository.save(detailsWithDescription)
+        val found = repository.findById(id)
+
+        assertNotNull(found)
+        assertEquals(description, found?.description)
+    }
+
+    @Test
+    fun `should handle long description and truncate to 256 characters`() {
+        val id = UUID.randomUUID()
+        val longDescription = "x".repeat(300) // 300 characters, exceeding the 256 limit
+        val expectedDescription = longDescription.take(256) // Only first 256 characters should be saved
+        val detailsWithLongDescription = randomDetailsWithDescription(id, longDescription)
+
+        repository.save(detailsWithLongDescription)
+        val found = repository.findById(id)
+
+        assertNotNull(found)
+        assertEquals(expectedDescription, found?.description)
+    }
+
+    @Test
+    fun `should handle empty description`() {
+        val id = UUID.randomUUID()
+        val detailsWithEmptyDescription = randomDetailsWithDescription(id, "")
+
+        repository.save(detailsWithEmptyDescription)
+        val found = repository.findById(id)
+
+        assertNotNull(found)
+        assertEquals("", found?.description)
+    }
+
     private fun randomDetails(id: UUID) = DepositDetails(
         id = id,
         //Truncate nano/micro seconds because of db precision
@@ -108,6 +147,31 @@ class ExposedCalculationRepositoryTest {
         termInMonths = 12,
         effectiveRate = Rate.create(BigDecimal("0.1050")),
         capitalization = Capitalization.YEAR,
+        description = "", // Default empty description
+        dailyStatistics = mapOf(LocalDate.now() to Amount.create(100L)),
+        statistics = mapOf(LocalDate.now() to Amount.create(1000L)),
+        replenishments = listOf(
+            ru.vichukano.spicerate.core.model.Replenishment(
+                sum = Amount.create(500L),
+                date = LocalDate.now().plusMonths(2)
+            )
+        )
+    )
+
+    private fun randomDetailsWithDescription(id: UUID, description: String) = DepositDetails(
+        id = id,
+        //Truncate nano/micro seconds because of db precision
+        createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS),
+        startSum = Amount.create(100000L),
+        endSum = Amount.create(110000L),
+        profit = Amount.create(10000L),
+        startDate = LocalDate.now(),
+        endDate = LocalDate.now().plusYears(1),
+        baseRate = Rate.create(BigDecimal("0.1000")),
+        termInMonths = 12,
+        effectiveRate = Rate.create(BigDecimal("0.1050")),
+        capitalization = Capitalization.YEAR,
+        description = description,
         dailyStatistics = mapOf(LocalDate.now() to Amount.create(100L)),
         statistics = mapOf(LocalDate.now() to Amount.create(1000L)),
         replenishments = listOf(

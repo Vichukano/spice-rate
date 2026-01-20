@@ -7,11 +7,11 @@ import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.AnchorPane
-import javafx.stage.Stage
 import javafx.stage.Modality
+import javafx.stage.Stage
 import ru.vichukano.spicerate.core.model.DepositDetails
 import ru.vichukano.spicerate.gui.controller.DepositCalculationsController
-import java.util.UUID
+import java.util.*
 
 class HistoryView(
     private val controller: DepositCalculationsController,
@@ -41,7 +41,7 @@ class HistoryView(
                         existingView.requestFocus()
                     } else {
                         controller.getDetailsById(selectedItem.id)?.let { details ->
-                            val detailsView = DetailsView(details)
+                            val detailsView = DetailsView(details, controller)
                             openDetailsViews[selectedItem.id] = detailsView
                             detailsView.show {
                                 openDetailsViews.remove(selectedItem.id)
@@ -55,7 +55,7 @@ class HistoryView(
 
     private fun initTable() {
         table.columns.addAll(
-            createTableColumn("id", "id"),
+            createTableColumn("Описание", "shortDesc"),
             createTableColumn("Дата открытия", "openDate"),
             createTableColumn("Ставка", "rate"),
             createTableColumn("Эффективная ставка", "effectiveRate"),
@@ -153,7 +153,8 @@ class HistoryView(
                     effectiveRate = it.effectiveRate,
                     capitalization = it.capitalization.value,
                     amount = it.startSum,
-                    finalAmount = it.endSum
+                    finalAmount = it.endSum,
+                    shortDesc = it.description.take(32)
                 )
             )
         }

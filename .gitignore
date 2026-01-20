@@ -46,3 +46,7 @@ bin/
 ### Agent contexts files
 CONTEXT.md
 GEMINI.md
+QWEN.md
+
+### SQLITE
+spicerate.db

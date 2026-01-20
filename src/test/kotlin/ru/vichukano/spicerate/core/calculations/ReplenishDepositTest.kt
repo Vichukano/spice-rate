@@ -41,6 +41,7 @@ class ReplenishDepositTest {
             termInMonths = 13,
             rate = Rate.create("13.3"),
             capitalization = Capitalization.NONE,
+            description = "test"
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
@@ -67,6 +68,7 @@ class ReplenishDepositTest {
             termInMonths = 15,
             rate = Rate.create("16.77"),
             capitalization = Capitalization.MONTH,
+            description = "test"
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
@@ -92,6 +94,7 @@ class ReplenishDepositTest {
             termInMonths = 11,
             rate = Rate.create("33.33"),
             capitalization = Capitalization.DAY,
+            description = "test"
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)
@@ -117,6 +120,7 @@ class ReplenishDepositTest {
             termInMonths = 24,
             rate = Rate.create("11,22"),
             capitalization = Capitalization.YEAR,
+            description = "test"
         )
         val depositDetails = DepositCalculatorProvider.calculateProfit(depositRequest)
         repository.save(depositDetails)

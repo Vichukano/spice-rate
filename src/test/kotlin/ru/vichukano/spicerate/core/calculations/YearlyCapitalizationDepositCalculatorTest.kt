@@ -20,7 +20,8 @@ class YearlyCapitalizationDepositCalculatorTest {
             openDate = LocalDate.of(2025, 7, 16),
             termInMonths = 43,
             rate = Rate.create("13,33"),
-            capitalization = Capitalization.YEAR
+            capitalization = Capitalization.YEAR,
+            description = "test"
         )
         //when
         val result = testTarget.calculateProfit(depositRequest)
